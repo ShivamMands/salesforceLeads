@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify, Response
 import psycopg2
-from flask_sqlalchemy import SQLAlchemy
+# from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 # import yaml
 import requests
@@ -9,7 +9,7 @@ import csv
 app = Flask(__name__, template_folder='templates')
 # db_config = yaml.safe_load(open('database.yaml'))
 # app.config['SQLALCHEMY_DATABASE_URI'] = db_config['uri']
-db = SQLAlchemy(app)
+# db = SQLAlchemy(app)
 CORS(app)
 
 conn = psycopg2.connect(
@@ -26,18 +26,18 @@ cur = conn.cursor()
 # t_user = ""
 # t_pw = "6fb679bd22aec45667687c79a3e4ed958c81cf584b489302a1bb38a9fe397469"
 
-class User(db.Model):
-    __tablename__ = "users"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(255))
-    age = db.Column(db.String(255))
-    
-    def __init__(self, name, age):
-        self.name = name
-        self.age = age
-    
-    def __repr__(self):
-        return '%s/%s/%s' % (self.id, self.name, self.age)
+# class User(db.Model):
+#     __tablename__ = "users"
+#     id = db.Column(db.Integer, primary_key=True)
+#     name = db.Column(db.String(255))
+#     age = db.Column(db.String(255))
+#
+#     def __init__(self, name, age):
+#         self.name = name
+#         self.age = age
+#
+#     def __repr__(self):
+#         return '%s/%s/%s' % (self.id, self.name, self.age)
 
 
 t_host = "ec2-44-206-117-24.compute-1.amazonaws.com"  # either "localhost", a domain name, or an IP address.
