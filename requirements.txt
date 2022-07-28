@@ -1,9 +1,7 @@
 Flask
 Flask-RESTful
-Flask-SQLAlchemy
 requests
 python-dateutil
 psycopg2
 flask_sqlalchemy
 flask_cors
-requests
