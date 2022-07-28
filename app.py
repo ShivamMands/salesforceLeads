@@ -6,7 +6,7 @@ from flask_cors import CORS
 import requests
 import csv
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates')
 # db_config = yaml.safe_load(open('database.yaml'))
 # app.config['SQLALCHEMY_DATABASE_URI'] = db_config['uri']
 db = SQLAlchemy(app)
