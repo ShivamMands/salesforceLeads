@@ -1,13 +1,30 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, Response
+import psycopg2
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-import yaml
+# import yaml
+import requests
+import csv
 
 app = Flask(__name__)
-db_config = yaml.load(open('database.yaml'))
-app.config['SQLALCHEMY_DATABASE_URI'] = db_config['uri'] 
+# db_config = yaml.safe_load(open('database.yaml'))
+# app.config['SQLALCHEMY_DATABASE_URI'] = db_config['uri']
 db = SQLAlchemy(app)
 CORS(app)
+
+conn = psycopg2.connect(
+        host="ec2-44-206-117-24.compute-1.amazonaws.com",
+        port="5432",
+        database="d5knigjrb5pdph",
+        user="euxqqreycxujvt",
+        password="6fb679bd22aec45667687c79a3e4ed958c81cf584b489302a1bb38a9fe397469")
+
+cur = conn.cursor()
+# t_host = "ec2-44-206-117-24.compute-1.amazonaws.com"  # either "localhost", a domain name, or an IP address.
+# t_port = "5432"  # default postgres port
+# t_dbname = "d5knigjrb5pdph"
+# t_user = ""
+# t_pw = "6fb679bd22aec45667687c79a3e4ed958c81cf584b489302a1bb38a9fe397469"
 
 class User(db.Model):
     __tablename__ = "users"
@@ -22,76 +39,48 @@ class User(db.Model):
     def __repr__(self):
         return '%s/%s/%s' % (self.id, self.name, self.age)
 
+
+t_host = "ec2-44-206-117-24.compute-1.amazonaws.com"  # either "localhost", a domain name, or an IP address.
+t_port = "5432"  # default postgres port
+t_dbname = "d5knigjrb5pdph"
+t_user = "euxqqreycxujvt"
+t_pw = "6fb679bd22aec45667687c79a3e4ed958c81cf584b489302a1bb38a9fe397469"
+
 @app.route('/')
 def index():
     return render_template('home.html')
 
-@app.route('/data', methods=['POST', 'GET'])
+@app.route('/mandsDemoOrg/getLeads', methods=['GET'])
 def data():
-    
-    # POST a data to database
-    if request.method == 'POST':
-        body = request.json
-        name = body['name']
-        age = body['age']
 
-        data = User(name, age)
-        db.session.add(data)
-        db.session.commit()
-
-        return jsonify({
-            'status': 'Data is posted to PostgreSQL!',
-            'name': name,
-            'age': age
-        })
-    
-    # GET all data from database & sort by id
     if request.method == 'GET':
-        # data = User.query.all()
-        data = User.query.order_by(User.id).all()
-        print(data)
-        dataJson = []
-        for i in range(len(data)):
-            # print(str(data[i]).split('/'))
-            dataDict = {
-                'id': str(data[i]).split('/')[0],
-                'name': str(data[i]).split('/')[1],
-                'age': str(data[i]).split('/')[2]
-            }
-            dataJson.append(dataDict)
-        return jsonify(dataJson)
-
-@app.route('/data/<string:id>', methods=['GET', 'DELETE', 'PUT'])
-def onedata(id):
-
-    # GET a specific data by id
-    if request.method == 'GET':
-        data = User.query.get(id)
-        print(data)
-        dataDict = {
-            'id': str(data).split('/')[0],
-            'name': str(data).split('/')[1],
-            'age': str(data).split('/')[2]
+        url = "http://api.coincap.io/v2/assets"
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
         }
-        return jsonify(dataDict)
-        
-    # DELETE a data
-    if request.method == 'DELETE':
-        delData = User.query.filter_by(id=id).first()
-        db.session.delete(delData)
-        db.session.commit()
-        return jsonify({'status': 'Data '+id+' is deleted from PostgreSQL!'})
+        response = requests.request("GET", url, headers=headers, data={})
+        myJson = response.json()
+        ourData = []
+        csvHeader = ["SYMBOL", "NAME", "PRICE(ISD)"]
+        for x in myJson["data"]:
+            listing = [x["symbol"], x["name"], x["priceUsd"]]
+            ourData.append(listing)
 
-    # UPDATE a data by id
-    if request.method == 'PUT':
-        body = request.json
-        newName = body['name']
-        newAge = body['age']
-        editData = User.query.filter_by(id=id).first()
-        editData.name = newName
-        editData.age = newAge
-        db.session.commit()
-        return jsonify({'status': 'Data '+id+' is updated from PostgreSQL!'})
+        with open('crypto.csv', "w", encoding="UTF8", newline="") as f:
+            writer = csv.writer(f)
+
+            writer.writerow(csvHeader)
+            writer.writerows(ourData)
+
+        with open("crypto.csv") as fp:
+            newCsv = fp.read()
+
+        return Response(
+            newCsv,
+            mimetype="text/csv",
+            headers={"Content-disposition":
+                         "attachment; filename=leads.csv"})
 
 if __name__ == '__main__':
     app.debug = True
