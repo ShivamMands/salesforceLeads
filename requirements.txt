@@ -4,8 +4,6 @@ Flask-SQLAlchemy
 requests
 python-dateutil
 psycopg2
-uwsgi
-psycopg2
 flask_sqlalchemy
 flask_cors
 requests
