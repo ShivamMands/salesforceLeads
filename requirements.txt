@@ -1,7 +1,6 @@
 Flask
-Flask-RESTful
 requests
-python-dateutil
 psycopg2
-flask_sqlalchemy
 flask_cors
+uvicorn==0.13.4
+
